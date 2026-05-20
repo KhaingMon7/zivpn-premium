@@ -30,7 +30,7 @@ if not BOT_TOKEN:
 CONFIG_FILE = "/etc/zivpn/config.json"
 
 # Admin configuration - ONLY YOUR ID CAN SEE ADMIN COMMANDS
-ADMIN_IDS = [7576434717, 7240495054, 6354074838]  # Telegram ID
+ADMIN_IDS = [7576434717, 7240495054]  # Telegram ID
 
 # ===== SYNC CONFIG FUNCTIONS =====
 def read_json(path, default):
@@ -73,14 +73,13 @@ def sync_config_passwords():
         
         write_json_atomic(CONFIG_FILE, cfg)
         
-        # ✅ Instead of restart, just reload config
-        result = subprocess.run("systemctl kill -s HUP zivpn.service || systemctl restart zivpn.service", 
-                                shell=True, capture_output=True, text=True, timeout=10)
+        # Restart ZIVPN service to apply changes
+        result = subprocess.run("systemctl restart zivpn.service", shell=True, capture_output=True, text=True, timeout=30)
         if result.returncode == 0:
-            logger.info("ZIVPN config synced (HUP or restart)")
+            logger.info("ZIVPN service restarted successfully for config sync")
             return True
         else:
-            logger.error(f"Failed to sync ZIVPN config: {result.stderr}")
+            logger.error(f"Failed to restart ZIVPN service: {result.stderr}")
             return False
             
     except Exception as e:
@@ -1080,4 +1079,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
